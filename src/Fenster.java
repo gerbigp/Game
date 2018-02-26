@@ -9,9 +9,13 @@ public class Fenster extends JComponent implements ActionListener {
 	public static Spielfeld s = new Spielfeld();
 	public static PacMan p = new PacMan(s.raster_Groesse);
 	public static Geist g1 = new Geist(new Point(14*s.raster_Groesse,9*s.raster_Groesse), 1, Color.RED);
+	public static Geist g2 = new Geist(new Point(14*s.raster_Groesse,9*s.raster_Groesse), 1, Color.GREEN);
+	public static Geist g3 = new Geist(new Point(14*s.raster_Groesse,9*s.raster_Groesse), 1, Color.YELLOW);
+	public static Geist g4 = new Geist(new Point(14*s.raster_Groesse,9*s.raster_Groesse), 1, Color.BLUE);
 	
 	public static int fps = 24; // Bilder pro Sekunde
     public static int refresh = 1000/fps; // in ms
+    public static int count = 0;
 
 	
 	//Hauptmethode
@@ -35,6 +39,7 @@ public class Fenster extends JComponent implements ActionListener {
                     case KeyEvent.VK_RIGHT: key = 1; p.richtungs_update(key); break;
                     case KeyEvent.VK_DOWN: key = 4; p.richtungs_update(key); break;
                     case KeyEvent.VK_LEFT: key = 3; p.richtungs_update(key); break;
+                    case KeyEvent.VK_SPACE: if (p.tot()) /*game_reset();*/ break;
                 }
                 //System.out.println(e.getKeyChar() + " pressed");
             }
@@ -79,6 +84,10 @@ public class Fenster extends JComponent implements ActionListener {
                 	g.setColor(new Color(s.get_farbe_Geister_Waende()[0],s.get_farbe_Geister_Waende()[1],s.get_farbe_Geister_Waende()[2]));
                     int c = s.raster_Groesse/3;
                     g.fillRect(b*s.raster_Groesse + 1, a*s.raster_Groesse+s.raster_Groesse/2-s.raster_Groesse/c/2, s.raster_Groesse, s.raster_Groesse/c);
+                } else if(s.spielfeld[a][b] == 5) {
+                    // Kirsche
+                	g.setColor(new Color(s.get_farbe_Kirsche()[0],s.get_farbe_Kirsche()[1],s.get_farbe_Kirsche()[2]));
+                    g.fillRect(b*s.raster_Groesse, a*s.raster_Groesse, s.raster_Groesse, s.raster_Groesse);
                 }
             }
         }
@@ -87,7 +96,7 @@ public class Fenster extends JComponent implements ActionListener {
         g.setColor(Color.white);
         //System.out.println(g.getFont() + "");
         g.drawString("Score: " + p.get_score(), s.spielfeld[0].length*s.raster_Groesse - 100, s.spielfeld.length*s.raster_Groesse - 10);
-        g.drawString("Leben: " + "2", 100, s.spielfeld.length*s.raster_Groesse - 10);
+        g.drawString("Leben: " + p.get_leben(), 100, s.spielfeld.length*s.raster_Groesse - 10);
         
         //PacMan
         g.setColor(p.get_farbe());
@@ -99,15 +108,65 @@ public class Fenster extends JComponent implements ActionListener {
 	    g.setColor(g1.get_farbe());
 	    //g.drawImage(g1.animation(), g1.get_position().x, g1.get_position().y, g1.get_radius(), g1.get_radius(), null);
 	    g.fillRect(g1.get_position().x, g1.get_position().y, g1.get_radius(), g1.get_radius());
+	    
+	  //Geist
+	    g.setColor(g2.get_farbe());
+	    //g.drawImage(g2.animation(), g2.get_position().x, g2.get_position().y, g2.get_radius(), g2.get_radius(), null);
+	    g.fillRect(g2.get_position().x, g2.get_position().y, g2.get_radius(), g2.get_radius());
+	    
+	  //Geist
+	    g.setColor(g3.get_farbe());
+	    //g.drawImage(g3.animation(), g3.get_position().x, g3.get_position().y, g3.get_radius(), g3.get_radius(), null);
+	    g.fillRect(g3.get_position().x, g3.get_position().y, g3.get_radius(), g3.get_radius());
+	    
+	  //Geist
+	    g.setColor(g4.get_farbe());
+	    //g.drawImage(g4.animation(), g4.get_position().x, g4.get_position().y, g4.get_radius(), g4.get_radius(), null);
+	    g.fillRect(g4.get_position().x, g4.get_position().y, g4.get_radius(), g4.get_radius());
+	    
+	    if(p.tot()) {
+    		g.setColor(Color.RED);
+    		g.setFont(new Font("TimesRoman", Font.PLAIN, 150)); 
+    		g.drawString("GAME OVER", 25, getHeight()/2);
+    		g.setFont(new Font("TimesRoman", Font.PLAIN, 50));
+    		g.drawString("Drücke Leertaste zum Neustarten", getWidth()/2-300, getHeight()/2+50);
+    	}
     }
     
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		repaint();
+		if(!p.tot()) {
+		count++;
 		
 		p.wand_vor_figur(s.spielfeld, s.raster_Groesse);
 		p.punkte_fressen(s.spielfeld, s.raster_Groesse);
+		if (p.leben_verlieren(s.spielfeld, g1.get_position(), s.raster_Groesse) ||
+		p.leben_verlieren(s.spielfeld, g2.get_position(), s.raster_Groesse) ||
+		p.leben_verlieren(s.spielfeld, g3.get_position(), s.raster_Groesse) ||
+		p.leben_verlieren(s.spielfeld, g4.get_position(), s.raster_Groesse)) {
+			count = 0;
+			p.reset(s.raster_Groesse);
+			g1.reset(s.raster_Groesse);
+			g2.reset(s.raster_Groesse);
+			g3.reset(s.raster_Groesse);
+			g4.reset(s.raster_Groesse);
+		}
+		if(p.tot()){
+			//System.exit(0);
+		};
 		g1.richtungs_update(p.get_position());
 		g1.wand_vor_figur(s.spielfeld, s.raster_Groesse);
+		g1.wand_vor_geist(count, s.spielfeld, s.raster_Groesse);
+		g2.richtungs_update(p.get_position());
+		g2.wand_vor_figur(s.spielfeld, s.raster_Groesse);
+		g2.wand_vor_geist(count, s.spielfeld, s.raster_Groesse);
+		g3.richtungs_update(p.get_position());
+		g3.wand_vor_figur(s.spielfeld, s.raster_Groesse);
+		g3.wand_vor_geist(count, s.spielfeld, s.raster_Groesse);
+		g4.richtungs_update(p.get_position());
+		g4.wand_vor_figur(s.spielfeld, s.raster_Groesse);
+		g4.wand_vor_geist(count, s.spielfeld, s.raster_Groesse);
+		}
     }
 };
